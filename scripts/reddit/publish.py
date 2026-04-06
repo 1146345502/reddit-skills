@@ -127,9 +127,10 @@ def _fill_body_composer(page: BridgePage, body: str) -> None:
             await new Promise(r => setTimeout(r, 300));
 
             const text = {body_js};
-            for (const ch of text) {{
-                document.execCommand('insertText', false, ch);
-                await new Promise(r => setTimeout(r, 5));
+            const chunkSize = 50;
+            for (let i = 0; i < text.length; i += chunkSize) {{
+                document.execCommand('insertText', false, text.slice(i, i + chunkSize));
+                await new Promise(r => setTimeout(r, 30));
             }}
             return JSON.stringify({{ok: true}});
         }})()
