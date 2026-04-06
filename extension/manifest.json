@@ -18,16 +18,5 @@
   ],
   "background": {
     "service_worker": "background.js"
-  },
-  "content_scripts": [
-    {
-      "matches": [
-        "https://www.reddit.com/*",
-        "https://old.reddit.com/*",
-        "https://new.reddit.com/*"
-      ],
-      "js": ["content.js"],
-      "run_at": "document_idle"
-    }
-  ]
+  }
 }

@@ -175,8 +175,7 @@ Exit codes: `0` success · `1` not logged in · `2` error
 reddit-skills/
 ├── extension/                  # Chrome Extension (MV3)
 │   ├── manifest.json
-│   ├── background.js
-│   └── content.js
+│   └── background.js
 ├── scripts/                    # Python automation engine
 │   ├── reddit/                 # Core automation library
 │   │   ├── bridge.py           # Extension bridge client
