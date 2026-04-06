@@ -1,0 +1,34 @@
+# Byte-compiled
+__pycache__/
+*.py[codz]
+*$py.class
+*.so
+
+# Distribution
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Virtual environments
+.env
+.venv
+venv/
+ENV/
+
+# Testing
+htmlcov/
+.coverage
+.pytest_cache/
+
+# IDE
+.idea/
+.vscode/
+.ruff_cache/
+
+# Project specific
+tmp/
+*.txt
+!requirements.txt
+config/
+cookies.json

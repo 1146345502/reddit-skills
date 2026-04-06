@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "Reddit Bridge",
+  "version": "1.0.0",
+  "description": "Reddit Automation Bridge - connects local Python CLI to browser",
+  "permissions": [
+    "tabs",
+    "cookies",
+    "scripting",
+    "alarms",
+    "debugger"
+  ],
+  "host_permissions": [
+    "https://www.reddit.com/*",
+    "https://old.reddit.com/*",
+    "https://new.reddit.com/*",
+    "ws://localhost/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.reddit.com/*",
+        "https://old.reddit.com/*",
+        "https://new.reddit.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
