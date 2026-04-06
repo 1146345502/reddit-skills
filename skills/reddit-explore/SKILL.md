@@ -9,7 +9,6 @@ metadata:
     requires:
       bins:
         - python3
-        - uv
     emoji: "\U0001F50D"
     os:
       - darwin

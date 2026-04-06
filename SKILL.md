@@ -9,7 +9,6 @@ metadata:
     requires:
       bins:
         - python3
-        - uv
     emoji: "\U0001F916"
     homepage: https://github.com/1146345502/reddit-skills
     os:

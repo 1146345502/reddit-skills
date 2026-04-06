@@ -9,12 +9,10 @@ metadata:
     requires:
       bins:
         - python3
-        - uv
     emoji: "\U0001F510"
     os:
       - darwin
       - linux
-      - windows
 ---
 
 # Reddit Authentication
