@@ -66,7 +66,7 @@ Output:
 Tell the user:
 > "You are not logged in to Reddit. Please open https://www.reddit.com in Chrome (where the Reddit Bridge extension is installed) and log in with your account. Once logged in, run `check-login` again."
 
-Reddit uses OAuth and complex auth flows that require manual browser login. The extension works with the user's existing session cookies.
+Reddit requires manual browser login. The extension works with the user's existing logged-in browser session.
 
 ### Log Out
 

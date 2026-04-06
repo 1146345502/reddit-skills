@@ -1,10 +1,10 @@
-"""Image downloader with SHA256 caching."""
+"""Image downloader with local caching."""
 
 from __future__ import annotations
 
-import hashlib
 import logging
 import os
+import time
 from pathlib import Path
 
 import requests
@@ -15,7 +15,7 @@ CACHE_DIR = os.path.join(str(Path.home()), ".reddit-skills", "images")
 
 
 def download_image(url: str) -> str:
-    """Download an image from URL, cache by SHA256.
+    """Download an image from URL and cache locally.
 
     Returns:
         Absolute path to the cached image file.
@@ -26,10 +26,9 @@ def download_image(url: str) -> str:
     resp.raise_for_status()
 
     content = resp.content
-    sha = hashlib.sha256(content).hexdigest()
 
     ext = _guess_extension(url, resp.headers.get("content-type", ""))
-    filename = f"{sha}{ext}"
+    filename = f"{int(time.time() * 1000)}{ext}"
     filepath = os.path.join(CACHE_DIR, filename)
 
     if not os.path.exists(filepath):
