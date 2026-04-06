@@ -1,10 +1,9 @@
 /**
  * Reddit Bridge - Background Service Worker
  *
- * Connects to local Python bridge server (ws://localhost:9334).
- * Receives commands via WebSocket and executes them using Chrome APIs.
- * All operations are scoped to reddit.com domains only.
- * No data is sent to any external server — only localhost communication.
+ * Connects to local Python bridge server at ws://localhost:9334.
+ * Receives commands via WebSocket, executes using Chrome APIs.
+ * Scoped to reddit.com domains only. No external server communication.
  */
 
 const BRIDGE_URL = "ws://localhost:9334";
@@ -41,7 +40,6 @@ async function handleCommand(msg) {
   switch (method) {
     case "navigate": return await cmdNavigate(params);
     case "wait_for_load": return await cmdWaitForLoad(params);
-    case "screenshot_element": return await cmdScreenshot();
     case "set_file_input": return await cmdSetFileInput(params);
     case "get_cookies": return await chrome.cookies.getAll({ domain: params.domain || "reddit.com" });
     case "evaluate": return await cmdEvaluateViaDebugger(params);
@@ -80,12 +78,6 @@ async function waitForTabComplete(tabId, expectedUrlPrefix, timeout) {
     };
     setTimeout(poll, 600);
   });
-}
-
-async function cmdScreenshot() {
-  const tab = await getOrOpenRedditTab();
-  const dataUrl = await chrome.tabs.captureVisibleTab(tab.windowId, { format: "png" });
-  return { data: dataUrl.split(",")[1] };
 }
 
 async function cmdEvaluateViaDebugger({ expression }) {

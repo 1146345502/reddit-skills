@@ -8,7 +8,6 @@ Each call is a short-lived connection (send one command, receive one reply).
 
 from __future__ import annotations
 
-import base64
 import json
 import os
 from typing import Any
@@ -170,14 +169,6 @@ class BridgePage:
         """Upload local files via chrome.debugger + DOM.setFileInputFiles."""
         abs_paths = [os.path.abspath(path) for path in files]
         self._call("set_file_input", {"selector": selector, "files": abs_paths})
-
-    # ─── Screenshot ─────────────────────────────────────────────
-
-    def screenshot_element(self, selector: str, padding: int = 0) -> bytes:
-        result = self._call("screenshot_element", {"selector": selector, "padding": padding})
-        if result and result.get("data"):
-            return base64.b64decode(result["data"])
-        return b""
 
     # ─── Compatibility helpers ──────────────────────────────────
 
