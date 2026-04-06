@@ -41,6 +41,16 @@ Route user intent by priority:
 4. **Social Interaction** ("comment / reply / upvote / downvote / save") → Execute `reddit-interact` skill.
 5. **Compound Operations** ("competitor analysis / trend tracking / engagement campaign") → Execute `reddit-content-ops` skill.
 
+## Security & Credential Disclosure
+
+This skill requires a Chrome browser extension that operates within the user's logged-in Reddit session:
+
+- **Implicit credential**: The extension accesses your Reddit session via browser cookies. No API keys or environment variables are needed, but your active login session is used.
+- **Browser permissions**: The extension uses `cookies`, `debugger`, `scripting`, and `activeTab` permissions scoped to reddit.com domains only.
+- **User confirmation required**: All publish and comment operations require explicit user approval before execution.
+- **No data exfiltration**: The CLI only reads Reddit page content and outputs JSON locally. No data is sent to external services.
+- **Local only**: The WebSocket bridge runs on localhost (127.0.0.1:9334) and accepts connections only from the local machine.
+
 ## Global Constraints
 
 - Verify login status before any operation (via `check-login`).

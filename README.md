@@ -195,7 +195,7 @@ reddit-skills/
 │   │   └── human.py            # Behavior simulation
 │   ├── cli.py                  # Unified CLI entry point
 │   ├── bridge_server.py        # Local WebSocket bridge
-│   └── image_downloader.py     # Image download (SHA256 cache)
+│   └── image_downloader.py     # Image download with local cache
 ├── skills/                     # AI Agent skill definitions
 │   ├── reddit-auth/SKILL.md
 │   ├── reddit-publish/SKILL.md
