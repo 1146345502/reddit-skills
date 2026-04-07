@@ -272,6 +272,25 @@ def cmd_save_post(args: argparse.Namespace) -> None:
         browser.close()
 
 
+def cmd_subreddit_rules(args: argparse.Namespace) -> None:
+    from reddit.publish import get_submit_flairs, get_subreddit_rules
+
+    browser, page = _connect(args)
+    try:
+        rules_data = get_subreddit_rules(page, args.subreddit)
+        flairs = get_submit_flairs(page, args.subreddit)
+        _output({
+            "subreddit": args.subreddit,
+            "rules": rules_data.get("rules", []),
+            "availableFlairs": flairs,
+            "requiresFlair": any(
+                "flair" in r.lower() for r in rules_data.get("rules", [])
+            ),
+        })
+    finally:
+        browser.close()
+
+
 def cmd_submit_text(args: argparse.Namespace) -> None:
     from reddit.publish import submit_text_post
     from reddit.types import SubmitTextContent
@@ -291,6 +310,7 @@ def cmd_submit_text(args: argparse.Namespace) -> None:
                 subreddit=args.subreddit,
                 title=title,
                 body=body,
+                flair_id=getattr(args, "flair", ""),
                 nsfw=args.nsfw,
                 spoiler=args.spoiler,
             ),
@@ -322,6 +342,7 @@ def cmd_submit_link(args: argparse.Namespace) -> None:
                 subreddit=args.subreddit,
                 title=title,
                 url=args.url,
+                flair_id=getattr(args, "flair", ""),
                 nsfw=args.nsfw,
                 spoiler=args.spoiler,
             ),
@@ -360,6 +381,7 @@ def cmd_submit_image(args: argparse.Namespace) -> None:
                 subreddit=args.subreddit,
                 title=title,
                 image_paths=image_paths,
+                flair_id=getattr(args, "flair", ""),
                 nsfw=args.nsfw,
                 spoiler=args.spoiler,
             ),
@@ -458,11 +480,17 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_argument("--unsave", action="store_true", help="Unsave instead of save")
     sub.set_defaults(func=cmd_save_post)
 
+    # subreddit-rules
+    sub = subparsers.add_parser("subreddit-rules", help="Get subreddit rules and flairs")
+    sub.add_argument("--subreddit", required=True, help="Subreddit name (without r/)")
+    sub.set_defaults(func=cmd_subreddit_rules)
+
     # submit-text
     sub = subparsers.add_parser("submit-text", help="Submit a text post")
     sub.add_argument("--subreddit", required=True, help="Target subreddit (without r/)")
     sub.add_argument("--title-file", required=True, help="Title file path")
     sub.add_argument("--body-file", help="Body text file path")
+    sub.add_argument("--flair", default="", help="Post flair text (matched by substring)")
     sub.add_argument("--nsfw", action="store_true", help="Mark as NSFW")
     sub.add_argument("--spoiler", action="store_true", help="Mark as spoiler")
     sub.set_defaults(func=cmd_submit_text)
@@ -472,6 +500,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_argument("--subreddit", required=True, help="Target subreddit (without r/)")
     sub.add_argument("--title-file", required=True, help="Title file path")
     sub.add_argument("--url", required=True, help="Link URL")
+    sub.add_argument("--flair", default="", help="Post flair text (matched by substring)")
     sub.add_argument("--nsfw", action="store_true", help="Mark as NSFW")
     sub.add_argument("--spoiler", action="store_true", help="Mark as spoiler")
     sub.set_defaults(func=cmd_submit_link)
@@ -481,6 +510,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_argument("--subreddit", required=True, help="Target subreddit (without r/)")
     sub.add_argument("--title-file", required=True, help="Title file path")
     sub.add_argument("--images", nargs="+", required=True, help="Image file paths or URLs")
+    sub.add_argument("--flair", default="", help="Post flair text (matched by substring)")
     sub.add_argument("--nsfw", action="store_true", help="Mark as NSFW")
     sub.add_argument("--spoiler", action="store_true", help="Mark as spoiler")
     sub.set_defaults(func=cmd_submit_image)

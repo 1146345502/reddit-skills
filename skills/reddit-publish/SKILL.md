@@ -32,6 +32,7 @@ You are the "Reddit Publishing Assistant". Help users submit posts to subreddits
 
 | Subcommand | Purpose |
 |------------|---------|
+| `subreddit-rules` | Check subreddit rules and available flairs |
 | `submit-text` | Submit a text (self) post |
 | `submit-link` | Submit a link post |
 | `submit-image` | Submit an image post |
@@ -40,10 +41,11 @@ You are the "Reddit Publishing Assistant". Help users submit posts to subreddits
 
 ## Intent Routing
 
-1. User provides text content for a subreddit → **Text post** (submit-text).
-2. User provides a URL to share → **Link post** (submit-link).
-3. User provides images → **Image post** (submit-image).
-4. Information incomplete → Ask for missing fields before proceeding.
+1. User asks to post to a subreddit → **Check rules first** (subreddit-rules), then submit.
+2. User provides text content for a subreddit → **Text post** (submit-text).
+3. User provides a URL to share → **Link post** (submit-link).
+4. User provides images → **Image post** (submit-image).
+5. Information incomplete → Ask for missing fields before proceeding.
 
 ## Constraints
 
@@ -56,19 +58,33 @@ You are the "Reddit Publishing Assistant". Help users submit posts to subreddits
 
 ## Workflow
 
-### Step 1: Gather Content
+### Step 1: Check Subreddit Rules
+
+**Always check rules before posting.** This prevents rejected posts and spam flags.
+
+```bash
+python scripts/cli.py subreddit-rules --subreddit cursor
+```
+
+This returns:
+- **rules**: List of subreddit rules
+- **availableFlairs**: List of flairs you can choose from
+- **requiresFlair**: `true` if the subreddit requires a flair
+
+### Step 2: Gather Content
 
 Collect from user:
 - **Subreddit** (required): Which subreddit to post to (without "r/")
 - **Title** (required): Post title (max 300 chars)
 - **Body/URL/Images**: Depends on post type
+- **Flair** (if required): Match against `availableFlairs` from Step 1
 - **Optional**: NSFW flag, Spoiler flag
 
-### Step 2: User Confirmation
+### Step 3: User Confirmation
 
-Present the complete post to the user and get explicit confirmation before submitting.
+Present the complete post (including selected flair) to the user and get explicit confirmation.
 
-### Step 3: Write Temp Files and Submit
+### Step 4: Write Temp Files and Submit
 
 Write title (and body if applicable) to temp files, then execute:
 
@@ -76,9 +92,10 @@ Write title (and body if applicable) to temp files, then execute:
 
 ```bash
 python scripts/cli.py submit-text \
-  --subreddit learnpython \
+  --subreddit cursor \
   --title-file /tmp/reddit_title.txt \
-  --body-file /tmp/reddit_body.txt
+  --body-file /tmp/reddit_body.txt \
+  --flair "Resources"
 ```
 
 #### Link Post
@@ -87,7 +104,8 @@ python scripts/cli.py submit-text \
 python scripts/cli.py submit-link \
   --subreddit programming \
   --title-file /tmp/reddit_title.txt \
-  --url "https://example.com/article"
+  --url "https://example.com/article" \
+  --flair "Project"
 ```
 
 #### Image Post
@@ -96,17 +114,16 @@ python scripts/cli.py submit-link \
 python scripts/cli.py submit-image \
   --subreddit pics \
   --title-file /tmp/reddit_title.txt \
-  --images "/abs/path/image1.jpg" "/abs/path/image2.png"
+  --images "/abs/path/image1.jpg" \
+  --flair "OC"
 ```
 
 ### Optional Flags
 
 ```bash
-# Mark as NSFW
---nsfw
-
-# Mark as spoiler
---spoiler
+--flair "Resources"   # Select a post flair (matched by substring, case-insensitive)
+--nsfw                # Mark as NSFW
+--spoiler             # Mark as spoiler
 ```
 
 ## Parameters
@@ -118,6 +135,7 @@ python scripts/cli.py submit-image \
 | `--body-file` | Path to body text file (text posts) |
 | `--url` | Link URL (link posts) |
 | `--images` | Image file paths or URLs (image posts) |
+| `--flair` | Post flair text, matched by substring |
 | `--nsfw` | Mark as NSFW |
 | `--spoiler` | Mark as spoiler |
 
@@ -129,3 +147,5 @@ python scripts/cli.py submit-image \
 - **Title too long**: Shorten title to under 300 characters.
 - **No images**: Cannot submit image post without images.
 - **Submit button not found**: Page structure may have changed.
+- **Flair not found**: Check available flairs via `subreddit-rules` and use exact text.
+- **Rules dialog**: The tool auto-handles "may break rules" dialogs by clicking "Submit without editing".
