@@ -5,9 +5,8 @@ from __future__ import annotations
 import logging
 import os
 import time
+import urllib.request
 from pathlib import Path
-
-import requests
 
 logger = logging.getLogger(__name__)
 
@@ -22,12 +21,12 @@ def download_image(url: str) -> str:
     """
     os.makedirs(CACHE_DIR, exist_ok=True)
 
-    resp = requests.get(url, timeout=30, stream=True)
-    resp.raise_for_status()
+    req = urllib.request.Request(url, headers={"User-Agent": "reddit-skills/1.0"})
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        content = resp.read()
+        content_type = resp.headers.get("Content-Type", "")
 
-    content = resp.content
-
-    ext = _guess_extension(url, resp.headers.get("content-type", ""))
+    ext = _guess_extension(url, content_type)
     filename = f"{int(time.time() * 1000)}{ext}"
     filepath = os.path.join(CACHE_DIR, filename)
 
