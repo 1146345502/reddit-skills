@@ -9,6 +9,11 @@ metadata:
     requires:
       bins:
         - python3
+    install:
+      - "pip install websockets>=12.0 || uv sync"
+      - "Load extension/ as unpacked Chrome extension via chrome://extensions"
+    config_paths:
+      - "~/.reddit-skills/images"
     emoji: "\U0001F916"
     homepage: https://github.com/1146345502/reddit-skills
     os:
@@ -46,10 +51,10 @@ Route user intent by priority:
 This skill requires a Chrome browser extension that operates within the user's logged-in Reddit session:
 
 - **Implicit credential**: The extension accesses your Reddit session via browser cookies. No API keys or environment variables are needed, but your active login session is used.
-- **Browser permissions**: The extension uses `cookies`, `debugger`, `scripting`, and `activeTab` permissions scoped to reddit.com domains only.
+- **Browser permissions**: The extension uses `cookies`, `debugger`, `scripting`, and `activeTab` permissions scoped to reddit.com domains only. See `extension/manifest.json` for the full permission list.
 - **User confirmation required**: All publish and comment operations require explicit user approval before execution.
-- **No data exfiltration**: The CLI only reads Reddit page content and outputs JSON locally. No data is sent to external services.
-- **Local only**: The WebSocket bridge runs on localhost (127.0.0.1:9334) and accepts connections only from the local machine.
+- **Network scope**: The extension (`background.js`) connects only to `ws://localhost:9334`. The Python bridge server (`bridge_server.py`) binds to `127.0.0.1:9334`. Image downloads (`image_downloader.py`) fetch user-specified URLs via stdlib `urllib.request` and cache to `~/.reddit-skills/images`. No other outbound network calls are made. Verify by inspecting the three files listed above.
+- **Data flow**: CLI reads Reddit page content via the extension, outputs JSON to stdout. Downloaded images are cached locally. No data is sent to third-party analytics, telemetry, or remote servers.
 
 ## Global Constraints
 
