@@ -14,10 +14,39 @@ from .urls import make_post_detail_url
 
 logger = logging.getLogger(__name__)
 
-_FILL_COMMENT_JS = """
+_SWITCH_TO_MARKDOWN_JS = """
+(async () => {
+    const btn = document.querySelector(
+        'shreddit-composer button[name="switchToMarkdown"], '
+      + 'shreddit-composer button[aria-label*="arkdown"], '
+      + 'shreddit-composer markdown-toggle button'
+    );
+    if (btn) {
+        btn.click();
+        await new Promise(r => setTimeout(r, 500));
+        return JSON.stringify({ok: true, mode: "markdown"});
+    }
+    const ta = document.querySelector('shreddit-composer textarea');
+    if (ta) return JSON.stringify({ok: true, mode: "already_markdown"});
+    return JSON.stringify({ok: false, error: "no markdown toggle found"});
+})()
+"""
+
+_FILL_COMMENT_MD_JS = """
 (async () => {{
+    let ta = document.querySelector('shreddit-composer textarea');
+    if (ta) {{
+        const nativeSetter = Object.getOwnPropertyDescriptor(
+            window.HTMLTextAreaElement.prototype, 'value').set;
+        nativeSetter.call(ta, {text_json});
+        ta.dispatchEvent(new Event('input', {{bubbles: true}}));
+        ta.dispatchEvent(new Event('change', {{bubbles: true}}));
+        await new Promise(r => setTimeout(r, 200));
+        return JSON.stringify({{ok: true, via: "textarea"}});
+    }}
+
     const ce = document.querySelector('shreddit-composer div[contenteditable="true"]');
-    if (!ce) return JSON.stringify({{ok: false, error: "no contenteditable"}});
+    if (!ce) return JSON.stringify({{ok: false, error: "no comment input found"}});
 
     const rect = ce.getBoundingClientRect();
     const x = rect.left + rect.width / 2;
@@ -34,6 +63,23 @@ _FILL_COMMENT_JS = """
     await new Promise(r => setTimeout(r, 100));
 
     const text = {text_json};
+    const paragraphs = text.split(/\\n\\n+/);
+    const html = paragraphs.map(p => '<p>' + p.replace(/\\n/g, '<br>') + '</p>').join('');
+    const plain = text;
+
+    const dt = new DataTransfer();
+    dt.setData('text/html', html);
+    dt.setData('text/plain', plain);
+    const pasteEvt = new ClipboardEvent('paste', {{
+        bubbles: true, cancelable: true, clipboardData: dt
+    }});
+    const handled = !ce.dispatchEvent(pasteEvt);
+
+    if (handled) {{
+        await new Promise(r => setTimeout(r, 300));
+        return JSON.stringify({{ok: true, via: "paste_html"}});
+    }}
+
     const lines = text.split("\\n");
     for (let i = 0; i < lines.length; i++) {{
         if (lines[i]) document.execCommand("insertText", false, lines[i]);
@@ -44,7 +90,7 @@ _FILL_COMMENT_JS = """
     }}
     await new Promise(r => setTimeout(r, 200));
 
-    return JSON.stringify({{ok: true, content: ce.innerText.trim().substring(0, 100)}});
+    return JSON.stringify({{ok: true, via: "contenteditable_fallback"}});
 }})()
 """
 
@@ -115,15 +161,23 @@ def _click_reply_button(page: BridgePage, comment_id: str) -> None:
 
 
 def _fill_comment(page: BridgePage, content: str) -> None:
-    """Focus the comment input and insert text via execCommand."""
+    """Focus the comment input and insert text. Tries markdown mode first for
+    reliable paragraph formatting, falls back to contenteditable."""
     page.wait_for_element('shreddit-composer div[contenteditable="true"]', timeout=10.0)
 
+    raw_switch = page.evaluate(_SWITCH_TO_MARKDOWN_JS)
+    if raw_switch:
+        switch_result = json.loads(raw_switch) if isinstance(raw_switch, str) else raw_switch
+        if switch_result.get("ok"):
+            logger.info("Editor mode: %s", switch_result.get("mode"))
+
     text_json = json.dumps(content, ensure_ascii=False)
-    raw = page.evaluate(_FILL_COMMENT_JS.format(text_json=text_json))
+    raw = page.evaluate(_FILL_COMMENT_MD_JS.format(text_json=text_json))
     if raw:
         result = json.loads(raw) if isinstance(raw, str) else raw
         if not result.get("ok"):
             raise ElementNotFoundError(result.get("error", "comment input"))
+        logger.info("Comment filled via: %s", result.get("via"))
     sleep_random(300, 500)
 
 

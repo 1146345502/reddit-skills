@@ -33,7 +33,7 @@ class BridgePage:
         if params:
             msg["params"] = params
         try:
-            with ws_client.connect(self._bridge_url, max_size=50 * 1024 * 1024, proxy=None) as wsc:
+            with ws_client.connect(self._bridge_url, max_size=50 * 1024 * 1024) as wsc:
                 wsc.send(json.dumps(msg, ensure_ascii=False))
                 raw = wsc.recv(timeout=90)
         except OSError as e:
@@ -175,7 +175,7 @@ class BridgePage:
     def is_server_running(self) -> bool:
         """Check if bridge server is running."""
         try:
-            with ws_client.connect(self._bridge_url, open_timeout=3, proxy=None) as wsc:
+            with ws_client.connect(self._bridge_url, open_timeout=3) as wsc:
                 wsc.send(json.dumps({"role": "cli", "method": "ping_server"}))
                 raw = wsc.recv(timeout=5)
             resp = json.loads(raw)
@@ -186,7 +186,7 @@ class BridgePage:
     def is_extension_connected(self) -> bool:
         """Check if browser extension is connected to bridge server."""
         try:
-            with ws_client.connect(self._bridge_url, open_timeout=3, proxy=None) as wsc:
+            with ws_client.connect(self._bridge_url, open_timeout=3) as wsc:
                 wsc.send(json.dumps({"role": "cli", "method": "ping_server"}))
                 raw = wsc.recv(timeout=5)
             resp = json.loads(raw)

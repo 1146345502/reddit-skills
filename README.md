@@ -95,6 +95,39 @@ After installing to a skills directory, just talk to the Agent in natural langua
 
 > "Analyze the top posts in r/startups this month and summarize the common themes"
 
+### As an MCP server
+
+reddit-skills includes a built-in [Model Context Protocol](https://modelcontextprotocol.io) server, making it compatible with any MCP client (Claude Desktop, Cursor, etc.).
+
+**Start the server (stdio):**
+
+```bash
+cd reddit-skills
+python scripts/mcp_server.py
+```
+
+**Configure in your MCP client** (e.g. Claude Desktop `claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "reddit-skills": {
+      "command": "python",
+      "args": ["scripts/mcp_server.py"],
+      "cwd": "/path/to/reddit-skills"
+    }
+  }
+}
+```
+
+The server exposes 16 tools: `check_login`, `logout`, `home_feed`, `subreddit_feed`, `search`, `get_post_detail`, `user_profile`, `subreddit_rules`, `post_comment`, `reply_comment`, `upvote`, `downvote`, `save_post`, `submit_text_post`, `submit_link_post`, `submit_image_post`.
+
+**Environment variables:**
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `REDDIT_BRIDGE_URL` | `ws://localhost:9334` | WebSocket URL for the bridge server |
+
 ### As a CLI tool
 
 All features can be called directly from the command line, with JSON output for scripting.
@@ -193,6 +226,7 @@ reddit-skills/
 │   │   ├── urls.py             # URL constants
 │   │   └── human.py            # Behavior simulation
 │   ├── cli.py                  # Unified CLI entry point
+│   ├── mcp_server.py           # MCP server wrapper (stdio/HTTP)
 │   ├── bridge_server.py        # Local WebSocket bridge
 │   └── image_downloader.py     # Image download with local cache
 ├── skills/                     # AI Agent skill definitions
@@ -203,6 +237,7 @@ reddit-skills/
 │   └── reddit-content-ops/SKILL.md
 ├── SKILL.md                    # Skill router (routes to sub-skills)
 ├── CONTRIBUTING.md             # Contributor guide
+├── Dockerfile                  # Container build for MCP deployment
 ├── pyproject.toml
 └── README.md
 ```
